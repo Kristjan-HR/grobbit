@@ -2,6 +2,7 @@ package handmade
 
 import (
 	. "Grobbit/common"
+	"strings"
 	"unicode"
 )
 
@@ -129,12 +130,43 @@ func (lexer *Lexer) NextToken() Token {
 		return lexer.token
 	}
 	switch lexer.ch {
+	case ',':
+		lexer.setToken(TtComma)
+		lexer.nextRune()
+	case ';':
+		lexer.setToken(TtSemicolon)
+		lexer.nextRune()
 	case '(':
 		lexer.setToken(TtLParen)
+		lexer.nextRune()
+	case ')':
+		lexer.setToken(TtRParen)
+		lexer.nextRune()
+	case '+':
+		lexer.setToken(TtOpAdd, pair{'=', TtOpAddAssign}, pair{'+', TtOpInc})
+		lexer.nextRune()
 	case '*':
 		lexer.setToken(TtOpMul, pair{'=', TtOpMulAssign})
+		lexer.nextRune()
 	default:
-		lexer.setToken(TtUnknown)
+		if unicode.IsLetter(lexer.ch) || lexer.ch == '_' {
+			lexeme := lexer.identifier()
+			lexer.setToken(Lookup(lexeme))
+			lexer.token.Lexeme = lexeme
+		} else {
+			lexer.setToken(TtUnknown)
+		}
 	}
 	return lexer.token
+}
+
+func (lexer *Lexer) identifier() string {
+	lexer.nextRune()
+
+	var builder strings.Builder
+	for !lexer.eoi && (unicode.IsLetter(lexer.ch) || unicode.IsDigit(lexer.ch) || lexer.ch == '_') {
+		builder.WriteRune(lexer.ch)
+		lexer.nextRune()
+	}
+	return builder.String()
 }
