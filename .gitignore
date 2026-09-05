@@ -13,6 +13,8 @@
 coverage.*
 *.coverprofile
 profile.cov
+test/
+out/
 
 # Build output
 bin/

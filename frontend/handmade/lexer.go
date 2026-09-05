@@ -148,11 +148,52 @@ func (lexer *Lexer) NextToken() Token {
 	case '*':
 		lexer.setToken(TtOpMul, pair{'=', TtOpMulAssign})
 		lexer.nextRune()
+	case '.':
+		if rune, isEnd := lexer.peekRune(); !isEnd && unicode.IsDigit(rune) {
+			start := lexer.pos
+			lexeme, _ := lexer.processNumber()
+
+			lexer.setToken(TtFloat)
+			lexer.token.Lexeme = lexeme
+			lexer.token.Pos = start
+			lexer.token.PosEnd = lexer.pos
+		} else {
+			lexer.setToken(TtPeriod)
+		}
+	case '/':
+		if lexer.peekRuneIs('/') {
+			lexer.comment()
+
+			if !lexer.eoi {
+				lexer.nextRune()
+			}
+
+			return lexer.NextToken()
+		} else if lexer.peekRuneIs('=') {
+			lexer.nextRune()
+			lexer.setToken(TtOpDivAssign)
+		} else {
+			lexer.setToken(TtOpDiv)
+		}
+		lexer.nextRune()
 	default:
 		if unicode.IsLetter(lexer.ch) || lexer.ch == '_' {
 			lexeme := lexer.identifier()
 			lexer.setToken(Lookup(lexeme))
 			lexer.token.Lexeme = lexeme
+		} else if b := unicode.IsDigit(lexer.ch); b {
+			start := lexer.pos
+			lexeme, isFloat := lexer.processNumber()
+
+			if isFloat {
+				lexer.setToken(TtFloat)
+			} else {
+				lexer.setToken(TtInt)
+			}
+
+			lexer.token.Lexeme = lexeme
+			lexer.token.Pos = start
+			lexer.token.PosEnd = lexer.pos
 		} else {
 			lexer.setToken(TtUnknown)
 		}
@@ -161,12 +202,55 @@ func (lexer *Lexer) NextToken() Token {
 }
 
 func (lexer *Lexer) identifier() string {
-	lexer.nextRune()
-
 	var builder strings.Builder
 	for !lexer.eoi && (unicode.IsLetter(lexer.ch) || unicode.IsDigit(lexer.ch) || lexer.ch == '_') {
 		builder.WriteRune(lexer.ch)
 		lexer.nextRune()
 	}
 	return builder.String()
+}
+
+func (lexer *Lexer) comment() {
+	for !lexer.eoi && lexer.ch != '\n' {
+		lexer.nextRune()
+	}
+}
+
+func (lexer *Lexer) processNumber() (string, bool) {
+	var builder strings.Builder
+	isFloat := false
+
+	for !lexer.eoi && unicode.IsDigit(lexer.ch) {
+		builder.WriteRune(lexer.ch)
+		lexer.nextRune()
+	}
+
+	if !lexer.eoi && lexer.ch == '.' {
+		isFloat = true
+		builder.WriteRune(lexer.ch)
+		lexer.nextRune()
+
+		for !lexer.eoi && unicode.IsDigit(lexer.ch) {
+			builder.WriteRune(lexer.ch)
+			lexer.nextRune()
+		}
+	}
+
+	if !lexer.eoi && (lexer.ch == 'e' || lexer.ch == 'E') {
+		isFloat = true
+		builder.WriteRune(lexer.ch)
+		lexer.nextRune()
+
+		if !lexer.eoi && (lexer.ch == '+' || lexer.ch == '-') {
+			builder.WriteRune(lexer.ch)
+			lexer.nextRune()
+		}
+
+		for !lexer.eoi && unicode.IsDigit(lexer.ch) {
+			builder.WriteRune(lexer.ch)
+			lexer.nextRune()
+		}
+	}
+
+	return builder.String(), isFloat
 }
