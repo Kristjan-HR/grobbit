@@ -4,6 +4,7 @@ import (
 	. "Grobbit/common"
 	"strings"
 	"unicode"
+	//"fmt"
 )
 
 type Lexer struct {
@@ -126,74 +127,160 @@ func (lexer *Lexer) NextToken() Token {
 	}
 
 	if lexer.eoi {
-		lexer.setToken(TtEOI)
+		lexer.token = Token{
+			Type:   TtEOI,
+			Lexeme: "",
+			Pos:    lexer.pos,
+			PosEnd: lexer.pos,
+		}
 		return lexer.token
 	}
 	switch lexer.ch {
 	case ',':
 		lexer.setToken(TtComma)
-		lexer.nextRune()
+		//lexer.nextRune()
+
 	case ';':
 		lexer.setToken(TtSemicolon)
-		lexer.nextRune()
+		//lexer.nextRune()
 	case '(':
 		lexer.setToken(TtLParen)
-		lexer.nextRune()
+		//lexer.nextRune()
 	case ')':
 		lexer.setToken(TtRParen)
-		lexer.nextRune()
+		//lexer.nextRune()
 	case '+':
-		lexer.setToken(TtOpAdd, pair{'=', TtOpAddAssign}, pair{'+', TtOpInc})
-		lexer.nextRune()
+		lexer.setToken(
+			TtOpAdd,
+			pair{'=', TtOpAddAssign},
+			pair{'+', TtOpInc},
+		)
+	case '-':
+		lexer.setToken(
+			TtOpSub,
+			pair{'=', TtOpSubAssign},
+			pair{'-', TtOpDec},
+		)
+	case '%':
+		lexer.setToken(
+			TtOpMod,
+			pair{'=', TtOpModAssign},
+		)
+
+	case '=':
+		lexer.setToken(
+			TtOpAssign,
+			pair{'=', TtOpEq},
+		)
+
+	case '!':
+		lexer.setToken(
+			TtOpNot,
+			pair{'=', TtOpNe},
+		)
+
+	case '<':
+		lexer.setToken(
+			TtOpLt,
+			pair{'=', TtOpLe},
+			pair{'-', TtOpArrow},
+		)
 	case '*':
 		lexer.setToken(TtOpMul, pair{'=', TtOpMulAssign})
-		lexer.nextRune()
+		//lexer.nextRune()
 	case '.':
-		if rune, isEnd := lexer.peekRune(); !isEnd && unicode.IsDigit(rune) {
+		next, isEnd := lexer.peekRune()
+
+		if !isEnd && unicode.IsDigit(next) {
 			start := lexer.pos
 			lexeme, _ := lexer.processNumber()
 
-			lexer.setToken(TtFloat)
-			lexer.token.Lexeme = lexeme
-			lexer.token.Pos = start
-			lexer.token.PosEnd = lexer.pos
+			lexer.token = Token{
+				Type:   TtFloat,
+				Lexeme: lexeme,
+				Pos:    start,
+				PosEnd: lexer.pos,
+			}
 		} else {
 			lexer.setToken(TtPeriod)
 		}
+	case '>':
+		lexer.setToken(
+			TtOpGt,
+			pair{'=', TtOpGe},
+		)
+
+	case ':':
+		lexer.setToken(
+			TtColon,
+			pair{'=', TtOpDefine},
+		)
+
+	case '&':
+		lexer.setToken(
+			TtOpBitAnd,
+			pair{'=', TtOpBitAndAssign},
+			pair{'&', TtOpAnd},
+		)
+	case '|':
+		lexer.setToken(
+			TtOpBitOr,
+			pair{'=', TtOpBitOrAssign},
+			pair{'|', TtOpOr},
+		)
+	case '{':
+		lexer.setToken(TtLBrace)
+
+	case '}':
+		lexer.setToken(TtRBrace)
 	case '/':
 		if lexer.peekRuneIs('/') {
 			lexer.comment()
-
-			if !lexer.eoi {
-				lexer.nextRune()
-			}
-
 			return lexer.NextToken()
-		} else if lexer.peekRuneIs('=') {
-			lexer.nextRune()
-			lexer.setToken(TtOpDivAssign)
-		} else {
-			lexer.setToken(TtOpDiv)
 		}
-		lexer.nextRune()
+
+		lexer.setToken(
+			TtOpDiv,
+			pair{'=', TtOpDivAssign},
+		)
+	case '"':
+		start := lexer.pos
+		lexeme := lexer.processString()
+
+		lexer.token = Token{
+			Type:   TtString,
+			Lexeme: lexeme,
+			Pos:    start,
+			PosEnd: lexer.pos,
+		}
 	default:
 		if unicode.IsLetter(lexer.ch) || lexer.ch == '_' {
+			start := lexer.pos
 			lexeme := lexer.identifier()
-			lexer.setToken(Lookup(lexeme))
-			lexer.token.Lexeme = lexeme
-		} else if b := unicode.IsDigit(lexer.ch); b {
+			//fmt.Println("DEBUG:", lexeme, Lookup(lexeme))
+			lexer.token = Token{
+				Type:   Lookup(lexeme),
+				Lexeme: lexeme,
+				Pos:    start,
+				PosEnd: lexer.pos,
+			}
+		} else if unicode.IsDigit(lexer.ch)  {
 			start := lexer.pos
 			lexeme, isFloat := lexer.processNumber()
 
+			tokenType := TtInt
+
 			if isFloat {
-				lexer.setToken(TtFloat)
-			} else {
-				lexer.setToken(TtInt)
+				tokenType = TtFloat
 			}
 
-			lexer.token.Lexeme = lexeme
-			lexer.token.Pos = start
-			lexer.token.PosEnd = lexer.pos
+			lexer.token = Token{
+				Type:   tokenType,
+				Lexeme: lexeme,
+				Pos:    start,
+				PosEnd: lexer.pos,
+			}
+		
 		} else {
 			lexer.setToken(TtUnknown)
 		}
@@ -253,4 +340,53 @@ func (lexer *Lexer) processNumber() (string, bool) {
 	}
 
 	return builder.String(), isFloat
+}
+func (lexer *Lexer) processString() string {
+	var builder strings.Builder
+	start := lexer.pos
+
+	// Add the opening quotation mark
+	builder.WriteRune(lexer.ch)
+	lexer.nextRune()
+
+	for !lexer.eoi {
+
+		// Closing quotation mark: end of string
+		if lexer.ch == '"' {
+			builder.WriteRune(lexer.ch)
+			lexer.nextRune()
+			return builder.String()
+		}
+
+		// Escape sequence
+		if lexer.ch == '\\' {
+			builder.WriteRune(lexer.ch)
+			lexer.nextRune()
+
+			if lexer.eoi {
+				lexer.errorHandler(start, "string not terminated")
+				return builder.String()
+			}
+
+			if !stringEscapeSet[lexer.ch] {
+				lexer.errorHandler(lexer.pos, "unknown escape sequence")
+			}
+
+			builder.WriteRune(lexer.ch)
+			lexer.nextRune()
+			continue
+		}
+
+		// A real newline cannot appear inside this string literal
+		if lexer.ch == '\n' {
+			lexer.errorHandler(start, "string not terminated")
+			return builder.String()
+		}
+
+		builder.WriteRune(lexer.ch)
+		lexer.nextRune()
+	}
+
+	lexer.errorHandler(start, "string not terminated")
+	return builder.String()
 }
