@@ -4,7 +4,6 @@ import (
 	. "Grobbit/common"
 	"strings"
 	"unicode"
-	//"fmt"
 )
 
 type Lexer struct {
@@ -120,8 +119,6 @@ func (lexer *Lexer) Init(src []byte, handler ErrorHandler) {
 // NextToken reads and returns the next token.
 func (lexer *Lexer) NextToken() Token {
 
-	// TODO: Modify the code in here.
-
 	for lexer.processWhiteSpaces() {
 		// Nothing ...
 	}
@@ -138,34 +135,19 @@ func (lexer *Lexer) NextToken() Token {
 	switch lexer.ch {
 	case ',':
 		lexer.setToken(TtComma)
-		//lexer.nextRune()
 
 	case ';':
 		lexer.setToken(TtSemicolon)
-		//lexer.nextRune()
 	case '(':
 		lexer.setToken(TtLParen)
-		//lexer.nextRune()
 	case ')':
 		lexer.setToken(TtRParen)
-		//lexer.nextRune()
 	case '+':
-		lexer.setToken(
-			TtOpAdd,
-			pair{'=', TtOpAddAssign},
-			pair{'+', TtOpInc},
-		)
+		lexer.setToken(TtOpAdd)
 	case '-':
-		lexer.setToken(
-			TtOpSub,
-			pair{'=', TtOpSubAssign},
-			pair{'-', TtOpDec},
-		)
+		lexer.setToken(TtOpSub)
 	case '%':
-		lexer.setToken(
-			TtOpMod,
-			pair{'=', TtOpModAssign},
-		)
+		lexer.setToken(TtOpMod)
 
 	case '=':
 		lexer.setToken(
@@ -183,11 +165,9 @@ func (lexer *Lexer) NextToken() Token {
 		lexer.setToken(
 			TtOpLt,
 			pair{'=', TtOpLe},
-			pair{'-', TtOpArrow},
 		)
 	case '*':
-		lexer.setToken(TtOpMul, pair{'=', TtOpMulAssign})
-		//lexer.nextRune()
+		lexer.setToken(TtOpMul)
 	case '.':
 		next, isEnd := lexer.peekRune()
 
@@ -212,20 +192,18 @@ func (lexer *Lexer) NextToken() Token {
 
 	case ':':
 		lexer.setToken(
-			TtColon,
+			TtUnknown,
 			pair{'=', TtOpDefine},
 		)
 
 	case '&':
 		lexer.setToken(
-			TtOpBitAnd,
-			pair{'=', TtOpBitAndAssign},
+			TtUnknown,
 			pair{'&', TtOpAnd},
 		)
 	case '|':
 		lexer.setToken(
-			TtOpBitOr,
-			pair{'=', TtOpBitOrAssign},
+			TtUnknown,
 			pair{'|', TtOpOr},
 		)
 	case '{':
@@ -242,10 +220,7 @@ func (lexer *Lexer) NextToken() Token {
 			return lexer.NextToken()
 		}
 
-		lexer.setToken(
-			TtOpDiv,
-			pair{'=', TtOpDivAssign},
-		)
+		lexer.setToken(TtOpDiv)
 	case '"':
 		start := lexer.pos
 		lexeme := lexer.processString()
@@ -260,7 +235,7 @@ func (lexer *Lexer) NextToken() Token {
 		if unicode.IsLetter(lexer.ch) || lexer.ch == '_' {
 			start := lexer.pos
 			lexeme := lexer.identifier()
-			//fmt.Println("DEBUG:", lexeme, Lookup(lexeme))
+
 			lexer.token = Token{
 				Type:   Lookup(lexeme),
 				Lexeme: lexeme,
@@ -354,9 +329,13 @@ func (lexer *Lexer) processNumber() (string, bool) {
 			lexer.nextRune()
 		}
 
-		for !lexer.eoi && unicode.IsDigit(lexer.ch) {
-			builder.WriteRune(lexer.ch)
-			lexer.nextRune()
+		if lexer.eoi || !unicode.IsDigit(lexer.ch) {
+			lexer.errorHandler(lexer.pos, "invalid exponent")
+		} else {
+			for !lexer.eoi && unicode.IsDigit(lexer.ch) {
+				builder.WriteRune(lexer.ch)
+				lexer.nextRune()
+			}
 		}
 	}
 
@@ -367,20 +346,17 @@ func (lexer *Lexer) processString() string {
 	var builder strings.Builder
 	start := lexer.pos
 
-	// Add the opening quotation mark
 	builder.WriteRune(lexer.ch)
 	lexer.nextRune()
 
 	for !lexer.eoi {
 
-		// Closing quotation mark: end of string
 		if lexer.ch == '"' {
 			builder.WriteRune(lexer.ch)
 			lexer.nextRune()
 			return builder.String()
 		}
 
-		// Escape sequence
 		if lexer.ch == '\\' {
 			builder.WriteRune(lexer.ch)
 			lexer.nextRune()
@@ -399,7 +375,6 @@ func (lexer *Lexer) processString() string {
 			continue
 		}
 
-		// A real newline cannot appear inside this string literal
 		if lexer.ch == '\n' {
 			lexer.errorHandler(start, "string not terminated")
 			return builder.String()
