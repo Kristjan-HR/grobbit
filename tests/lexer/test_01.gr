@@ -11,6 +11,6 @@ func main() {
     var x int = 0
     // This is an unterminated string.
     var s2 string = "he"
-    x *= 2 * x
+    x * 2 * x
 }
 
