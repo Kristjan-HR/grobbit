@@ -109,7 +109,9 @@ func (lexer *Lexer) processWhiteSpaces() bool {
 
 // Init function initialises the lexical analysis.
 func (lexer *Lexer) Init(src []byte, handler ErrorHandler) {
-	lexer.src, lexer.n, lexer.i = []rune(string(src)), len(src), -1
+	lexer.src = []rune(string(src))
+	lexer.n = len(lexer.src)
+	lexer.i = -1
 	lexer.eoi = false
 	lexer.pos = Position{Line: 1, Col: 0}
 	lexer.errorHandler = handler
