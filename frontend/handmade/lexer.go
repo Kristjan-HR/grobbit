@@ -235,7 +235,10 @@ func (lexer *Lexer) NextToken() Token {
 		lexer.setToken(TtRBrace)
 	case '/':
 		if lexer.peekRuneIs('/') {
-			lexer.comment()
+			lexer.singleLineComment()
+			return lexer.NextToken()
+		} else if lexer.peekRuneIs('*') {
+			lexer.multilineComment()
 			return lexer.NextToken()
 		}
 
@@ -264,7 +267,7 @@ func (lexer *Lexer) NextToken() Token {
 				Pos:    start,
 				PosEnd: lexer.pos,
 			}
-		} else if unicode.IsDigit(lexer.ch)  {
+		} else if unicode.IsDigit(lexer.ch) {
 			start := lexer.pos
 			lexeme, isFloat := lexer.processNumber()
 
@@ -280,7 +283,7 @@ func (lexer *Lexer) NextToken() Token {
 				Pos:    start,
 				PosEnd: lexer.pos,
 			}
-		
+
 		} else {
 			lexer.setToken(TtUnknown)
 		}
@@ -297,10 +300,28 @@ func (lexer *Lexer) identifier() string {
 	return builder.String()
 }
 
-func (lexer *Lexer) comment() {
+func (lexer *Lexer) singleLineComment() {
 	for !lexer.eoi && lexer.ch != '\n' {
 		lexer.nextRune()
 	}
+}
+
+func (lexer *Lexer) multilineComment() {
+	start := lexer.pos
+
+	lexer.nextRune()
+	lexer.nextRune()
+
+	for !lexer.eoi {
+		if lexer.ch == '*' && lexer.peekRuneIs('/') {
+			lexer.nextRune()
+			lexer.nextRune()
+			return
+		}
+		lexer.nextRune()
+	}
+
+	lexer.errorHandler(start, "multiline comment not terminated")
 }
 
 func (lexer *Lexer) processNumber() (string, bool) {
@@ -341,6 +362,7 @@ func (lexer *Lexer) processNumber() (string, bool) {
 
 	return builder.String(), isFloat
 }
+
 func (lexer *Lexer) processString() string {
 	var builder strings.Builder
 	start := lexer.pos

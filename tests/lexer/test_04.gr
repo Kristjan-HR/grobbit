@@ -1,0 +1,39 @@
+package main;
+
+func main() {
+	var x int = 10;
+	var y int = 20;
+
+	x += 2;
+	x -= 1;
+	x *= 3;
+	x /= 2;
+	x %= 4;
+
+	if x == y {
+		x = 0;
+	}
+
+	if x != y {
+		x = 1;
+	}
+
+	if x <= y && y >= x {
+		x = 2;
+	}
+
+	if x < y || x > 0 {
+		x = 3;
+	}
+
+	z := 5;
+
+	// this is a comment
+	var s string = "hello\nworld";
+
+	/* this is a block comment */
+	/*
+	this is a block comment on multiple lines
+	*/
+	/**/
+}
