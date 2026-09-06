@@ -235,10 +235,10 @@ func (lexer *Lexer) NextToken() Token {
 		lexer.setToken(TtRBrace)
 	case '/':
 		if lexer.peekRuneIs('/') {
-			lexer.singleLineComment()
+			lexer.lineComment()
 			return lexer.NextToken()
 		} else if lexer.peekRuneIs('*') {
-			lexer.multilineComment()
+			lexer.blockComment()
 			return lexer.NextToken()
 		}
 
@@ -300,13 +300,13 @@ func (lexer *Lexer) identifier() string {
 	return builder.String()
 }
 
-func (lexer *Lexer) singleLineComment() {
+func (lexer *Lexer) lineComment() {
 	for !lexer.eoi && lexer.ch != '\n' {
 		lexer.nextRune()
 	}
 }
 
-func (lexer *Lexer) multilineComment() {
+func (lexer *Lexer) blockComment() {
 	start := lexer.pos
 
 	lexer.nextRune()
@@ -321,7 +321,7 @@ func (lexer *Lexer) multilineComment() {
 		lexer.nextRune()
 	}
 
-	lexer.errorHandler(start, "multiline comment not terminated")
+	lexer.errorHandler(start, "block comment not terminated")
 }
 
 func (lexer *Lexer) processNumber() (string, bool) {

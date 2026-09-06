@@ -28,7 +28,7 @@ func main() {
 
 	z := 5;
 
-	// this is a comment
+	// this is a line comment
 	var s string = "hello\nworld";
 
 	/* this is a block comment */
