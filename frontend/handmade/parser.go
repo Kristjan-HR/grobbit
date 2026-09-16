@@ -645,8 +645,8 @@ func (parser *Parser) ExprPrimary() ExprNode {
 		)
 		parser.matchError(msg)
 	}
-
-	ident, token := parser.QualifiedIdentifier()
+	token := parser.token
+	expr := parser.QualifiedIdentifier()
 
 	if parser.token.Type == TtLParen {
 		parser.match(TtLParen)
@@ -660,33 +660,30 @@ func (parser *Parser) ExprPrimary() ExprNode {
 
 		return &CallExprNode{
 			Tok:  token,
-			Fun:  ident,
+			Fun:  expr,
 			Args: args,
 		}
 	}
 
-	return ident
+	return expr
 }
 
-func (parser *Parser) QualifiedIdentifier() (ExprNode, Token) {
-	first := parser.Identifier()
-	var expr ExprNode = first
-	token := first.Tok
+func (parser *Parser) QualifiedIdentifier() ExprNode {
+	expr := ExprNode(parser.Identifier())
 
-	if parser.matchIf(TtPeriod) {
-		second := parser.Identifier()
-
-		token.Lexeme = token.Lexeme + "." + second.Tok.Lexeme
-		token.PosEnd = second.Tok.PosEnd
+	if parser.token.Type == TtPeriod {
+		token := parser.token
+		parser.match(TtPeriod)
+		selector := parser.Identifier()
 
 		expr = &SelectorExprNode{
 			Tok:  token,
 			Expr: expr,
-			Sel:  second,
+			Sel:  selector,
 		}
 	}
 
-	return expr, token
+	return expr
 }
 
 func (parser *Parser) isBasicLiteral() bool {
