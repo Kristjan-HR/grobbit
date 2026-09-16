@@ -429,13 +429,45 @@ func (parser *Parser) ConstSpec() *ValueSpecNode {
 func (parser *Parser) BreakStatement() StmtNode {
 	token := parser.token
 	parser.match(TtKwBreak)
-	return &BranchStmtNode{Tok: token}// TO DO ...
-	return nil
+	return &BranchStmtNode{Tok: token}
 }
 
-func (parser *Parser) IfStatement() StmtNode {
-	// TO DO ...
-	return nil
+func (parser *Parser) IfStatement() *IfStmtNode {
+	var (
+		statement      StmtNode
+		condition      ExprNode
+		else_statement StmtNode
+	)
+
+	token := parser.token
+	parser.match(TtKwIf)
+	statement_or_condition := parser.SimpleStatement() // as the set of possible conditions is a subset of the set of possible simple statements
+
+	if parser.matchIf(TtSemicolon) {
+		statement = statement_or_condition
+		condition = parser.Expression()
+	} else {
+		expression, ok := statement_or_condition.(*ExprStmtNode)
+		if !ok {
+			parser.matchError("expected an expression as the if condition")
+		}
+		condition = expression.Expr
+	}
+
+	body := parser.BlockStatement()
+
+	if parser.matchIf(TtKwElse) {
+		switch parser.token.Type {
+		case TtKwIf:
+			else_statement = parser.IfStatement()
+		case TtLBrace:
+			else_statement = parser.BlockStatement()
+		default:
+			parser.matchError("expected \"if\" or \"{\" after \"else\"")
+		}
+	}
+
+	return &IfStmtNode{Tok: token, Init: statement, Cond: condition, Body: body, Else: else_statement}
 }
 
 func (parser *Parser) ExprAnd() ExprNode {
