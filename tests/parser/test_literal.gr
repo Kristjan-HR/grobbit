@@ -1,0 +1,9 @@
+package test;
+
+func main() {
+	var x int;
+
+	if x < 10 {
+		return;
+	};
+};

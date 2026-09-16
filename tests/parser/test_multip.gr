@@ -1,0 +1,12 @@
+package test;
+
+func main() {
+	var x int;
+	var y int;
+	var z int;
+	var w int;
+
+	if x + y * z < w {
+		return;
+	};
+};
