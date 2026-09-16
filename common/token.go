@@ -47,6 +47,7 @@ const (
 	beginLiteral // begin_ end_ constants do not serve as actual token types, used as markers (not exported)
 	TtInt        // Integer literal
 	TtFloat      // Float literal
+	TtBool       // Bool literal
 	TtImag       // Imaginary literal
 	TtChar       // Char/Rune literal
 	TtString     // String literal
@@ -144,6 +145,7 @@ var tokenTypes = [...]string{
 	TtIdentifier:        "IDENT",
 	TtInt:               "INT",
 	TtFloat:             "FLOAT",
+	TtBool:              "BOOL", // was missing
 	TtChar:              "CHAR",
 	TtString:            "STRING",
 	TtOpAdd:             "+",

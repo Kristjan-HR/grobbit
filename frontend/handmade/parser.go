@@ -471,15 +471,111 @@ func (parser *Parser) IfStatement() *IfStmtNode {
 }
 
 func (parser *Parser) ExprAnd() ExprNode {
-	// TO DO ...
-
-	// This code is a place-holder, replace with your implementation.
 	var expr ExprNode = nil
-	if parser.token.Type == TtIdentifier {
-		expr = parser.Identifier()
-	} else {
-		expr = parser.BasicLiteral()
+	expr = parser.ExprRelational()
+	token := parser.token
+
+	for parser.matchIf(TtOpAnd) {
+		rhs := parser.ExprRelational()
+		expr = &BinaryExprNode{Tok: token, Lhs: expr, Rhs: rhs}
+		token = parser.token
 	}
+
+	return expr
+}
+
+func (parser *Parser) ExprRelational() ExprNode {
+	var expr ExprNode = nil
+	expr = parser.ExprAdditive()
+	token := parser.token
+
+	for parser.oneOf(TtOpEq, TtOpNe, TtOpLt, TtOpLe, TtOpGt, TtOpGe) {
+		parser.token = parser.lexer.NextToken()
+		rhs := parser.ExprAdditive()
+		expr = &BinaryExprNode{Tok: token, Lhs: expr, Rhs: rhs}
+		token = parser.token
+	}
+
+	return expr
+}
+
+func (parser *Parser) ExprAdditive() ExprNode {
+	var expr ExprNode = nil
+	expr = parser.ExprMultiplicative()
+	token := parser.token
+
+	for parser.oneOf(TtOpAdd, TtOpSub) {
+		rhs := parser.ExprMultiplicative()
+		expr = &BinaryExprNode{Tok: token, Lhs: expr, Rhs: rhs}
+		token = parser.token
+	}
+
+	return expr
+}
+
+func (parser *Parser) ExprMultiplicative() ExprNode {
+	var expr ExprNode = nil
+	expr = parser.ExprUnary()
+	token := parser.token
+
+	for parser.oneOf(TtOpMul, TtOpDiv, TtOpMod) {
+		parser.token = parser.lexer.NextToken()
+		rhs := parser.ExprUnary()
+		expr = &BinaryExprNode{Tok: token, Lhs: expr, Rhs: rhs}
+		token = parser.token
+	}
+
+	return expr
+}
+
+func (parser *Parser) ExprUnary() ExprNode {
+	if parser.oneOf(TtOpAdd, TtOpSub, TtOpNot) {
+		token := parser.token
+		parser.token = parser.lexer.NextToken()
+		expr := parser.ExprUnary()
+		return &UnaryExprNode{Tok: token, Expr: expr}
+	}
+
+	return parser.ExprPrimary()
+}
+
+func (parser *Parser) ExprPrimary() ExprNode {
+	if parser.oneOf(TtInt, TtFloat, TtBool) {
+		lit := parser.token
+		parser.token = parser.lexer.NextToken()
+		return &LiteralNode{Tok: lit}
+	}
+
+	if parser.matchIf(TtLParen) {
+		expr := parser.Expression()
+		parser.match(TtRParen)
+		return expr
+	}
+
+	identTok := parser.token
+	parser.token = parser.lexer.NextToken()
+
+	var expr ExprNode = &IdentifierNode{Tok: identTok}
+
+	if parser.matchIf(TtPeriod) {
+		selTok := parser.token
+		parser.token = parser.lexer.NextToken()
+		expr = &SelectorExprNode{
+			Tok:  selTok,
+			Expr: expr,
+			Sel:  &IdentifierNode{Tok: selTok},
+		}
+	}
+
+	if parser.matchIf(TtLParen) {
+		var args []ExprNode
+		if !parser.oneOf(TtRParen) {
+			args = parser.Expressions()
+		}
+		parser.match(TtRParen)
+		return &CallExprNode{Tok: identTok, Fun: expr, Args: args}
+	}
+
 	return expr
 }
 
