@@ -39,12 +39,7 @@ type (
 		Tok Token
 	}
 
-	SelectorExprNode struct {
-		ExprNode
-		Tok  Token
-		Expr ExprNode        // expression
-		Sel  *IdentifierNode // field selector
-	}
+	
 
 	CallExprNode struct {
 		Tok  Token
