@@ -42,7 +42,7 @@ func runLexer(lex common.LexerInterface, txt string, filename string, outFilenam
 func DoTestLexer() {
 	var lex Lexer
 	var lexBuiltin stub.Lexer
-	filename := "tests/lexer/test_04.gr" //os.Args[1]
+	filename := "tests/lexer/test_01.gr" //os.Args[1]
 	runLexer(&lexBuiltin, "BUILTIN", filename, "out/output_b.txt")
 	runLexer(&lex, "OWN", filename, "out/output_o.txt")
 }

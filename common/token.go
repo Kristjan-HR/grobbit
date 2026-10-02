@@ -47,7 +47,6 @@ const (
 	beginLiteral // begin_ end_ constants do not serve as actual token types, used as markers (not exported)
 	TtInt        // Integer literal
 	TtFloat      // Float literal
-	
 	TtImag       // Imaginary literal
 	TtChar       // Char/Rune literal
 	TtString     // String literal

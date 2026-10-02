@@ -1,8 +1,10 @@
 package main
 
-import "Grobbit/frontend/handmade"
+import "Grobbit/frontend/toolmade"
 
 func main() {
 	//handmade.DoTestLexer()
-	handmade.DoTestParser()
+	//handmade.DoTestParser()
+	//toolmade.DoTestLexer()
+	toolmade.DoTestParser()
 }

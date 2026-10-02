@@ -40,7 +40,6 @@ type (
 	}
 
 	SelectorExprNode struct {
-		//ExprNode
 		Tok  Token
 		Expr ExprNode        // expression
 		Sel  *IdentifierNode // field selector
@@ -67,8 +66,8 @@ type (
 // func (*BadExpr) exprNode()        {}
 func (*IdentifierNode) exprNode() {}
 func (*LiteralNode) exprNode()    {}
+func (*SelectorExprNode) exprNode()   {}
 func (*CallExprNode) exprNode()   {}
-func (*SelectorExprNode) exprNode() {}
 func (*UnaryExprNode) exprNode()  {}
 func (*BinaryExprNode) exprNode() {}
 

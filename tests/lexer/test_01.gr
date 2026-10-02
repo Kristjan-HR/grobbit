@@ -1,6 +1,10 @@
+ö
+"\x12"
+"\x12f"
 // Write you own, more comprehensive, test files for testing the lexer.
+
 const (
-	c1 = 11
+    c1 = 11
 	c2 = 10.2
 	c3 = 0.10
 	c4 = 10.4
@@ -10,7 +14,7 @@ func main() {
     var s1 string = "hello"
     var x int = 0
     // This is an unterminated string.
-    var s2 string = "he"
-    x * 2 * x
+    var s2 string = "he
+    x *= 2 * x
 }
 

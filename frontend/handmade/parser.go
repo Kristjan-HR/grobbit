@@ -47,7 +47,7 @@ func (parser *Parser) ParseSrc(src []byte, handler ErrorHandler) string {
 	parser.Init(&lex)
 	astree := parser.Parse()
 	var pv PrintVisitor
-	//ast.Print(nil, astree)  // For a more detailed printing.
+	//ast.Print(nil, astree) // For a more detailed printing.
 	return pv.Root(astree)
 }
 
@@ -240,10 +240,9 @@ func (parser *Parser) Statement() StmtNode {
 func (parser *Parser) DeclStatement() *DeclStmtNode {
 	var decl DeclNode
 	token := parser.token
-	switch parser.token.Type {
-	case TtKwConst:
+	if parser.matchIf(TtKwConst) {
 		decl = parser.ConstDecl()
-	case TtKwVar:
+	} else {
 		decl = parser.VarDecl()
 	}
 	return &DeclStmtNode{Tok: token, Decl: decl}
@@ -256,7 +255,7 @@ func (parser *Parser) BlockStatement() *BlockStmtNode {
 	for parser.token.Type != TtRBrace {
 		stmt := parser.Statement()
 		stmts = append(stmts, stmt)
-		parser.matchIf(TtSemicolon)
+		parser.match(TtSemicolon)
 	}
 	parser.match(TtRBrace)
 	return &BlockStmtNode{Tok: token, List: stmts}
@@ -279,81 +278,38 @@ func (parser *Parser) ContinueStatement() StmtNode {
 }
 
 func (parser *Parser) ForStatement() *ForStmtNode {
-	var init, cond, post StmtNode
-
+	var init, cond, post StmtNode = nil, nil, nil
 	token := parser.token
 	parser.match(TtKwFor)
-
 	if parser.token.Type != TtLBrace {
-
-		// for ; condition ; post { ... }
-		// or for ;; { ... }
-		if parser.matchIf(TtSemicolon) {
-
+		init = parser.SimpleStatement()
+		if parser.matchIf(TtSemicolon) { // ... for loop with a for clause
 			if parser.token.Type != TtSemicolon {
 				cond = parser.SimpleStatement()
 			}
-
 			parser.match(TtSemicolon)
-
 			if parser.token.Type != TtLBrace {
 				post = parser.SimpleStatement()
 			}
-
-		} else {
-
-			// Could be either:
-			// for condition { ... }
-			// or:
-			// for init ; condition ; post { ... }
-
-			first := parser.SimpleStatement()
-
-			if parser.matchIf(TtSemicolon) {
-				init = first
-
-				if parser.token.Type != TtSemicolon {
-					cond = parser.SimpleStatement()
-				}
-
-				parser.match(TtSemicolon)
-
-				if parser.token.Type != TtLBrace {
-					post = parser.SimpleStatement()
-				}
-
-			} else {
-				cond = first
-			}
+		} else { // ... for loop with only a condition
+			cond = init
+			init = nil
 		}
 	}
-
-	var condExpr ExprNode
-
+	var condExpr ExprNode = nil
 	if cond != nil {
-		exprStmt, ok := cond.(*ExprStmtNode)
-
-		if !ok {
-			msg := fmt.Sprintf(
-				"Condition needs to be an expression at line %d.",
-				parser.token.Pos.Line,
-			)
+		if tmp, isExpr := cond.(*ExprStmtNode); isExpr { // Ensure, condition is an ExpressionStmt
+			condExpr = tmp.Expr
+		} else {
+			msg := fmt.Sprintf("Condition needs to be an expression at line %d.", parser.token.Pos.Line)
 			parser.matchError(msg)
+			// terminates
 		}
-
-		condExpr = exprStmt.Expr
 	}
-
 	block := parser.BlockStatement()
-
-	return &ForStmtNode{
-		Tok:  token,
-		Init: init,
-		Cond: condExpr,
-		Post: post,
-		Body: block,
-	}
+	return &ForStmtNode{Tok: token, Init: init, Cond: condExpr, Post: post, Body: block}
 }
+
 func (parser *Parser) SimpleStatement() StmtNode {
 	var stmt StmtNode = nil
 	var exprsLhs, exprsRhs []ExprNode
@@ -409,295 +365,48 @@ func (parser *Parser) Identifier() *IdentifierNode {
 }
 
 func (parser *Parser) BasicLiteral() ExprNode {
-	if !parser.isBasicLiteral() {
-		msg := fmt.Sprintf(
-			"Expected a literal but found '%s' at position %s.",
-			parser.token.Type,
-			parser.token.Pos,
-		)
+	if !parser.oneOf(parser.token.Type, TtInt, TtFloat, TtString) {
+		msg := fmt.Sprintf("Expected a literal but found '%s' at position %s.", parser.token.Type, parser.token.Pos)
 		parser.matchError(msg)
 	}
-
 	token := parser.token
 	parser.match(parser.token.Type)
-
 	return &LiteralNode{Tok: token}
 }
 
 ////////////////// You implement the methods below (add methods as needed) ////////////////////
 
 func (parser *Parser) ConstDecl() DeclNode {
-	var (
-		spec  SpecNode
-		specs []SpecNode
-	)
-
-	token := parser.token
-	parser.match(TtKwConst)
-
-	if parser.matchIf(TtLParen) {
-		for parser.token.Type == TtIdentifier {
-			spec = parser.ConstSpec()
-			specs = append(specs, spec)
-			parser.match(TtSemicolon)
-		}
-		parser.match(TtRParen)
-	} else {
-		spec = parser.ConstSpec()
-		specs = append(specs, spec)
-	}
-
-	return &GenDeclNode{Tok: token, Specs: specs}
+	// TO DO ...
+	return nil
 }
 
 func (parser *Parser) ConstSpec() *ValueSpecNode {
-	var exprs []ExprNode
-
-	token := parser.token
-	idents := parser.Identifiers()
-	typeExpr := parser.TypeName()
-
-	parser.match(TtOpAssign)
-
-	expr := parser.BasicLiteral()
-	exprs = append(exprs, expr)
-
-	for parser.matchIf(TtComma) {
-		expr = parser.BasicLiteral()
-		exprs = append(exprs, expr)
-	}
-
-	return &ValueSpecNode{
-		Token:  token,
-		Names:  idents,
-		Type:   typeExpr,
-		Values: exprs,
-	}
+	// TO DO ...
+	return nil
 }
 
 func (parser *Parser) BreakStatement() StmtNode {
-	token := parser.token
-	parser.match(TtKwBreak)
-	return &BranchStmtNode{Tok: token}
+	// TO DO ...
+	return nil
 }
 
-func (parser *Parser) IfStatement() *IfStmtNode {
-	var (
-		statement      StmtNode
-		condition      ExprNode
-		else_statement StmtNode
-	)
-
-	token := parser.token
-	parser.match(TtKwIf)
-	statement_or_condition := parser.SimpleStatement() // as the set of possible conditions is a subset of the set of possible simple statements
-
-	if parser.matchIf(TtSemicolon) {
-		statement = statement_or_condition
-		condition = parser.Expression()
-	} else {
-		expression, ok := statement_or_condition.(*ExprStmtNode)
-		if !ok {
-			parser.matchError("expected an expression as the if condition")
-		}
-		condition = expression.Expr
-	}
-
-	body := parser.BlockStatement()
-
-	if parser.matchIf(TtKwElse) {
-		switch parser.token.Type {
-		case TtKwIf:
-			else_statement = parser.IfStatement()
-		case TtLBrace:
-			else_statement = parser.BlockStatement()
-		default:
-			parser.matchError("expected \"if\" or \"{\" after \"else\"")
-		}
-	}
-
-	return &IfStmtNode{Tok: token, Init: statement, Cond: condition, Body: body, Else: else_statement}
+func (parser *Parser) IfStatement() StmtNode {
+	// TO DO ...
+	return nil
 }
 
 func (parser *Parser) ExprAnd() ExprNode {
+	// TO DO ...
+
+	// This code is a place-holder, replace with your implementation.
 	var expr ExprNode = nil
-	expr = parser.ExprRelational()
-	token := parser.token
-
-	for parser.matchIf(TtOpAnd) {
-		rhs := parser.ExprRelational()
-		expr = &BinaryExprNode{Tok: token, Lhs: expr, Rhs: rhs}
-		token = parser.token
+	if parser.token.Type == TtIdentifier {
+		expr = parser.Identifier()
+	} else {
+		expr = parser.BasicLiteral()
 	}
-
 	return expr
-}
-
-func (parser *Parser) ExprRelational() ExprNode {
-	expr := parser.ExprAdditive()
-
-	for parser.oneOf(
-		parser.token.Type,
-		TtOpEq,
-		TtOpNe,
-		TtOpLt,
-		TtOpLe,
-		TtOpGt,
-		TtOpGe,
-	) {
-		token := parser.token
-		parser.match(parser.token.Type)
-
-		rhs := parser.ExprAdditive()
-
-		expr = &BinaryExprNode{
-			Tok: token,
-			Lhs: expr,
-			Rhs: rhs,
-		}
-	}
-
-	return expr
-}
-
-func (parser *Parser) ExprAdditive() ExprNode {
-	expr := parser.ExprMultiplicative()
-
-	for parser.oneOf(
-		parser.token.Type,
-		TtOpAdd,
-		TtOpSub,
-	) {
-		token := parser.token
-		parser.match(parser.token.Type)
-		rhs := parser.ExprMultiplicative()
-		expr = &BinaryExprNode{
-			Tok: token,
-			Lhs: expr,
-			Rhs: rhs,
-		}
-	}
-
-	return expr
-}
-
-func (parser *Parser) ExprMultiplicative() ExprNode {
-
-	expr := parser.ExprUnary()
-	for parser.oneOf(
-		parser.token.Type,
-		TtOpMul,
-		TtOpDiv,
-		TtOpMod,
-	) {
-		token := parser.token
-		parser.match(parser.token.Type)
-
-		rhs := parser.ExprUnary()
-
-		expr = &BinaryExprNode{
-			Tok: token,
-			Lhs: expr,
-			Rhs: rhs,
-		}
-	}
-
-	return expr
-}
-
-func (parser *Parser) ExprUnary() ExprNode {
-	if parser.oneOf(
-		parser.token.Type,
-		TtOpAdd,
-		TtOpSub,
-		TtOpNot,
-	) {
-		token := parser.token
-		parser.match(parser.token.Type)
-
-		expr := parser.ExprUnary()
-
-		return &UnaryExprNode{
-			Tok:  token,
-			Expr: expr,
-		}
-	}
-
-	return parser.ExprPrimary()
-}
-
-func (parser *Parser) ExprPrimary() ExprNode {
-	if parser.isBasicLiteral() {
-		return parser.BasicLiteral()
-	}
-
-	if parser.matchIf(TtLParen) {
-		expr := parser.Expression()
-		parser.match(TtRParen)
-		return expr
-	}
-
-	if parser.token.Type != TtIdentifier {
-		msg := fmt.Sprintf(
-			"Expected a primary expression but found '%s' at position %s.",
-			parser.token.Type,
-			parser.token.Pos,
-		)
-		parser.matchError(msg)
-	}
-	token := parser.token
-	expr := parser.QualifiedIdentifier()
-
-	if parser.token.Type == TtLParen {
-		parser.match(TtLParen)
-
-		var args []ExprNode
-		if parser.token.Type != TtRParen {
-			args = parser.Expressions()
-		}
-
-		parser.match(TtRParen)
-
-		return &CallExprNode{
-			Tok:  token,
-			Fun:  expr,
-			Args: args,
-		}
-	}
-
-	return expr
-}
-
-func (parser *Parser) QualifiedIdentifier() ExprNode {
-	expr := ExprNode(parser.Identifier())
-
-	if parser.token.Type == TtPeriod {
-		token := parser.token
-		parser.match(TtPeriod)
-		selector := parser.Identifier()
-
-		expr = &SelectorExprNode{
-			Tok:  token,
-			Expr: expr,
-			Sel:  selector,
-		}
-	}
-
-	return expr
-}
-
-func (parser *Parser) isBasicLiteral() bool {
-	if parser.oneOf(
-		parser.token.Type,
-		TtInt,
-		TtFloat,
-		TtString,
-	) {
-		return true
-	}
-
-	return parser.token.Type == TtIdentifier &&
-		(parser.token.Lexeme == "true" || parser.token.Lexeme == "false")
 }
 
 // Add functions as needed to parse expressions with the precedence (and associativity) of Grobbit operators correct

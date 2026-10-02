@@ -2,7 +2,6 @@ package handmade
 
 import (
 	. "Grobbit/common"
-	"strings"
 	"unicode"
 )
 
@@ -121,271 +120,23 @@ func (lexer *Lexer) Init(src []byte, handler ErrorHandler) {
 // NextToken reads and returns the next token.
 func (lexer *Lexer) NextToken() Token {
 
+	// TODO: Modify the code in here.
+
 	for lexer.processWhiteSpaces() {
 		// Nothing ...
 	}
 
 	if lexer.eoi {
-		lexer.token = Token{
-			Type:   TtEOI,
-			Lexeme: "",
-			Pos:    lexer.pos,
-			PosEnd: lexer.pos,
-		}
+		lexer.setToken(TtEOI)
 		return lexer.token
 	}
 	switch lexer.ch {
-	case ',':
-		lexer.setToken(TtComma)
-
-	case ';':
-		lexer.setToken(TtSemicolon)
 	case '(':
 		lexer.setToken(TtLParen)
-	case ')':
-		lexer.setToken(TtRParen)
-	case '+':
-		lexer.setToken(TtOpAdd)
-	case '-':
-		lexer.setToken(TtOpSub)
-	case '%':
-		lexer.setToken(TtOpMod)
-
-	case '=':
-		lexer.setToken(
-			TtOpAssign,
-			pair{'=', TtOpEq},
-		)
-
-	case '!':
-		lexer.setToken(
-			TtOpNot,
-			pair{'=', TtOpNe},
-		)
-
-	case '<':
-		lexer.setToken(
-			TtOpLt,
-			pair{'=', TtOpLe},
-		)
 	case '*':
-		lexer.setToken(TtOpMul)
-	case '.':
-		next, isEnd := lexer.peekRune()
-
-		if !isEnd && unicode.IsDigit(next) {
-			start := lexer.pos
-			lexeme, _ := lexer.processNumber()
-
-			lexer.token = Token{
-				Type:   TtFloat,
-				Lexeme: lexeme,
-				Pos:    start,
-				PosEnd: lexer.pos,
-			}
-		} else {
-			lexer.setToken(TtPeriod)
-		}
-	case '>':
-		lexer.setToken(
-			TtOpGt,
-			pair{'=', TtOpGe},
-		)
-
-	case ':':
-		lexer.setToken(
-			TtUnknown,
-			pair{'=', TtOpDefine},
-		)
-
-	case '&':
-		lexer.setToken(
-			TtUnknown,
-			pair{'&', TtOpAnd},
-		)
-	case '|':
-		lexer.setToken(
-			TtUnknown,
-			pair{'|', TtOpOr},
-		)
-	case '{':
-		lexer.setToken(TtLBrace)
-
-	case '}':
-		lexer.setToken(TtRBrace)
-	case '/':
-		if lexer.peekRuneIs('/') {
-			lexer.lineComment()
-			return lexer.NextToken()
-		} else if lexer.peekRuneIs('*') {
-			lexer.blockComment()
-			return lexer.NextToken()
-		}
-
-		lexer.setToken(TtOpDiv)
-	case '"':
-		start := lexer.pos
-		lexeme := lexer.processString()
-
-		lexer.token = Token{
-			Type:   TtString,
-			Lexeme: lexeme,
-			Pos:    start,
-			PosEnd: lexer.pos,
-		}
+		lexer.setToken(TtOpMul, pair{'=', TtOpMulAssign})
 	default:
-		if unicode.IsLetter(lexer.ch) || lexer.ch == '_' {
-			start := lexer.pos
-			lexeme := lexer.identifier()
-
-			lexer.token = Token{
-				Type:   Lookup(lexeme),
-				Lexeme: lexeme,
-				Pos:    start,
-				PosEnd: lexer.pos,
-			}
-		} else if unicode.IsDigit(lexer.ch) {
-			start := lexer.pos
-			lexeme, isFloat := lexer.processNumber()
-
-			tokenType := TtInt
-
-			if isFloat {
-				tokenType = TtFloat
-			}
-
-			lexer.token = Token{
-				Type:   tokenType,
-				Lexeme: lexeme,
-				Pos:    start,
-				PosEnd: lexer.pos,
-			}
-
-		} else {
-			lexer.setToken(TtUnknown)
-		}
+		lexer.setToken(TtUnknown)
 	}
 	return lexer.token
-}
-
-func (lexer *Lexer) identifier() string {
-	var builder strings.Builder
-	for !lexer.eoi && (unicode.IsLetter(lexer.ch) || unicode.IsDigit(lexer.ch) || lexer.ch == '_') {
-		builder.WriteRune(lexer.ch)
-		lexer.nextRune()
-	}
-	return builder.String()
-}
-
-func (lexer *Lexer) lineComment() {
-	for !lexer.eoi && lexer.ch != '\n' {
-		lexer.nextRune()
-	}
-}
-
-func (lexer *Lexer) blockComment() {
-	start := lexer.pos
-
-	lexer.nextRune()
-	lexer.nextRune()
-
-	for !lexer.eoi {
-		if lexer.ch == '*' && lexer.peekRuneIs('/') {
-			lexer.nextRune()
-			lexer.nextRune()
-			return
-		}
-		lexer.nextRune()
-	}
-
-	lexer.errorHandler(start, "block comment not terminated")
-}
-
-func (lexer *Lexer) processNumber() (string, bool) {
-	var builder strings.Builder
-	isFloat := false
-
-	for !lexer.eoi && unicode.IsDigit(lexer.ch) {
-		builder.WriteRune(lexer.ch)
-		lexer.nextRune()
-	}
-
-	if !lexer.eoi && lexer.ch == '.' {
-		isFloat = true
-		builder.WriteRune(lexer.ch)
-		lexer.nextRune()
-
-		for !lexer.eoi && unicode.IsDigit(lexer.ch) {
-			builder.WriteRune(lexer.ch)
-			lexer.nextRune()
-		}
-	}
-
-	if !lexer.eoi && (lexer.ch == 'e' || lexer.ch == 'E') {
-		isFloat = true
-		builder.WriteRune(lexer.ch)
-		lexer.nextRune()
-
-		if !lexer.eoi && (lexer.ch == '+' || lexer.ch == '-') {
-			builder.WriteRune(lexer.ch)
-			lexer.nextRune()
-		}
-
-		if lexer.eoi || !unicode.IsDigit(lexer.ch) {
-			lexer.errorHandler(lexer.pos, "invalid exponent")
-		} else {
-			for !lexer.eoi && unicode.IsDigit(lexer.ch) {
-				builder.WriteRune(lexer.ch)
-				lexer.nextRune()
-			}
-		}
-	}
-
-	return builder.String(), isFloat
-}
-
-func (lexer *Lexer) processString() string {
-	var builder strings.Builder
-	start := lexer.pos
-
-	builder.WriteRune(lexer.ch)
-	lexer.nextRune()
-
-	for !lexer.eoi {
-
-		if lexer.ch == '"' {
-			builder.WriteRune(lexer.ch)
-			lexer.nextRune()
-			return builder.String()
-		}
-
-		if lexer.ch == '\\' {
-			builder.WriteRune(lexer.ch)
-			lexer.nextRune()
-
-			if lexer.eoi {
-				lexer.errorHandler(start, "string not terminated")
-				return builder.String()
-			}
-
-			if !stringEscapeSet[lexer.ch] {
-				lexer.errorHandler(lexer.pos, "unknown escape sequence")
-			}
-
-			builder.WriteRune(lexer.ch)
-			lexer.nextRune()
-			continue
-		}
-
-		if lexer.ch == '\n' {
-			lexer.errorHandler(start, "string not terminated")
-			return builder.String()
-		}
-
-		builder.WriteRune(lexer.ch)
-		lexer.nextRune()
-	}
-
-	lexer.errorHandler(start, "string not terminated")
-	return builder.String()
 }

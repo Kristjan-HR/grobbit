@@ -1,8 +1,0 @@
-package test;
-
-func main() {
-	const x int = 10;
-	for {
-		break;
-	};
-};
