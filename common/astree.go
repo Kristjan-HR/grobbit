@@ -7,6 +7,8 @@ type Node any
 // ExprNode implement the Expr interface.
 type ExprNode interface {
 	Node
+	GetType() Type
+	SetType(Type)
 	exprNode()
 }
 
@@ -30,46 +32,66 @@ type DeclNode interface {
 
 //////////////////////////////////////////////////////////////////////////////////////
 
+type exprNode_ struct { // Expression nodes store the expression's type (after type checking).
+	typ Type
+}
+
+func (node *exprNode_) exprNode()        {}
+func (node *exprNode_) GetType() Type    { return node.typ }
+func (node *exprNode_) SetType(typ Type) { node.typ = typ }
+
 type (
 	IdentifierNode struct {
+		exprNode_
 		Tok Token
 	}
 
 	LiteralNode struct {
+		exprNode_
 		Tok Token
 	}
 
 	SelectorExprNode struct {
+		exprNode_
 		Tok  Token
 		Expr ExprNode        // expression
 		Sel  *IdentifierNode // field selector
 	}
 
 	CallExprNode struct {
+		exprNode_
 		Tok  Token
 		Fun  ExprNode   // function expression
 		Args []ExprNode // function arguments; or nil
 	}
 
 	UnaryExprNode struct {
+		exprNode_
 		Tok  Token
 		Expr ExprNode // operand
 	}
 
 	BinaryExprNode struct {
+		exprNode_
 		Tok Token
 		Lhs ExprNode // left operand
 		Rhs ExprNode // right operand
 	}
 )
 
+func NewIdentifier(tt TokenType, name string) *IdentifierNode {
+	//return &IdentifierNode{exprNode_{}, Token{tt, name, Position{0, 0}}}
+	token := Token{tt, name, Position{0, 0}, Position{0, 0}}
+	return &IdentifierNode{Tok: token}
+}
+
 // func (*BadExpr) exprNode()        {}
-func (*IdentifierNode) exprNode() {}
-func (*LiteralNode) exprNode()    {}
-func (*SelectorExprNode) exprNode()   {}
-func (*CallExprNode) exprNode()   {}
-func (*UnaryExprNode) exprNode()  {}
-func (*BinaryExprNode) exprNode() {}
+func (*IdentifierNode) exprNode()   {}
+func (*LiteralNode) exprNode()      {}
+func (*SelectorExprNode) exprNode() {}
+func (*CallExprNode) exprNode()     {}
+func (*UnaryExprNode) exprNode()    {}
+func (*BinaryExprNode) exprNode()   {}
 
 //////////////////////////////////////////////////////////////////////////////////////
 

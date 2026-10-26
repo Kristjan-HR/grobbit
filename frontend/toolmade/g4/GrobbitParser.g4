@@ -33,7 +33,7 @@ var_spec:       identifiers type (TtOpAssign basic_literals)?
 basic_literals: basic_literal (TtComma basic_literal)*
                 ;
 
-basic_literal:  TtInt | TtFloat  // NOTE: BOOL
+basic_literal:  TtInt | TtFloat | TtBool
                 ;
 
 func_decl:      TtKwFunc identifier TtLParen (param_decl)? TtRParen (type)? block
@@ -92,7 +92,7 @@ if_stmt:        TtKwIf (simple_stmt TtSemicolon)? condition block (TtKwElse (if_
 for_stmt:       TtKwFor (condition | for_clause)? block
                 ;
 
-for_clause:     simple_stmt? TtSemicolon condition? TtSemicolon simple_stmt?
+for_clause:     (init=simple_stmt)? TtSemicolon condition? TtSemicolon (post=simple_stmt)?
                 ;
 
 condition:      expression
@@ -113,7 +113,7 @@ expressions:    expression (TtComma expression)*
                 ;
 
 expression:       unary_expr
-                | expression op=(TtOpMul | TtOpMod | TtOpDiv) expression
+                | expression op=(TtOpMul | TtOpDiv | TtOpMod) expression
                 | expression op=(TtOpAdd | TtOpSub) expression
                 | expression op=(TtOpEq | TtOpNe | TtOpLt | TtOpLe | TtOpGt | TtOpGe) expression
                 | expression op=TtOpAnd expression

@@ -1,0 +1,20 @@
+package test;
+
+func Lhs() bool {
+  Print(100);
+  return true;
+};
+
+func Rhs() bool {
+  Print(200);
+  return false;
+};
+
+func TestLogicalOp() {
+  res := Lhs() && Rhs();
+  Print(res);
+};
+
+func main() {
+  TestLogicalOp();
+};

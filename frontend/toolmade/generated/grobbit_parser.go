@@ -49,8 +49,8 @@ func grobbitparserParserInit() {
 		"TtKwElse", "TtKwFallthrough", "TtKwFor", "TtKwFunc", "TtKwGo", "TtKwGoto",
 		"TtKwIf", "TtKwImport", "TtKwInterface", "TtKwMap", "TtKwPackage", "TtKwRange",
 		"TtKwReturn", "TtKwSelect", "TtKwStruct", "TtKwSwitch", "TtKwType",
-		"TtKwVar", "TtIdentifier", "TtInt", "TtFloat", "TtString", "TtChar",
-		"WS", "BLOCK_COMMENT", "LINE_COMMENT", "TtUnknown",
+		"TtKwVar", "TtBool", "TtIdentifier", "TtFloat", "TtInt", "TtString",
+		"TtChar", "WS", "BLOCK_COMMENT", "LINE_COMMENT", "TtUnknown",
 	}
 	staticData.RuleNames = []string{
 		"program", "top_decl", "pkg_name", "import_decl", "import_spec", "const_decl",
@@ -63,7 +63,7 @@ func grobbitparserParserInit() {
 	}
 	staticData.PredictionContextCache = antlr.NewPredictionContextCache()
 	staticData.serializedATN = []int32{
-		4, 1, 57, 349, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
+		4, 1, 58, 349, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
 		4, 2, 5, 7, 5, 2, 6, 7, 6, 2, 7, 7, 7, 2, 8, 7, 8, 2, 9, 7, 9, 2, 10, 7,
 		10, 2, 11, 7, 11, 2, 12, 7, 12, 2, 13, 7, 13, 2, 14, 7, 14, 2, 15, 7, 15,
 		2, 16, 7, 16, 2, 17, 7, 17, 2, 18, 7, 18, 2, 19, 7, 19, 2, 20, 7, 20, 2,
@@ -100,13 +100,13 @@ func grobbitparserParserInit() {
 		34, 3, 34, 335, 8, 34, 1, 35, 1, 35, 1, 35, 3, 35, 340, 8, 35, 1, 35, 1,
 		35, 1, 35, 3, 35, 345, 8, 35, 1, 35, 1, 35, 1, 35, 0, 1, 64, 36, 0, 2,
 		4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40,
-		42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 0, 5, 1, 0,
-		50, 51, 1, 0, 10, 12, 1, 0, 8, 9, 1, 0, 17, 22, 2, 0, 8, 9, 16, 16, 362,
-		0, 72, 1, 0, 0, 0, 2, 96, 1, 0, 0, 0, 4, 98, 1, 0, 0, 0, 6, 100, 1, 0,
-		0, 0, 8, 115, 1, 0, 0, 0, 10, 119, 1, 0, 0, 0, 12, 133, 1, 0, 0, 0, 14,
-		138, 1, 0, 0, 0, 16, 152, 1, 0, 0, 0, 18, 158, 1, 0, 0, 0, 20, 166, 1,
-		0, 0, 0, 22, 168, 1, 0, 0, 0, 24, 180, 1, 0, 0, 0, 26, 188, 1, 0, 0, 0,
-		28, 191, 1, 0, 0, 0, 30, 199, 1, 0, 0, 0, 32, 201, 1, 0, 0, 0, 34, 203,
+		42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 0, 5, 2, 0,
+		49, 49, 51, 52, 1, 0, 10, 12, 1, 0, 8, 9, 1, 0, 17, 22, 2, 0, 8, 9, 16,
+		16, 362, 0, 72, 1, 0, 0, 0, 2, 96, 1, 0, 0, 0, 4, 98, 1, 0, 0, 0, 6, 100,
+		1, 0, 0, 0, 8, 115, 1, 0, 0, 0, 10, 119, 1, 0, 0, 0, 12, 133, 1, 0, 0,
+		0, 14, 138, 1, 0, 0, 0, 16, 152, 1, 0, 0, 0, 18, 158, 1, 0, 0, 0, 20, 166,
+		1, 0, 0, 0, 22, 168, 1, 0, 0, 0, 24, 180, 1, 0, 0, 0, 26, 188, 1, 0, 0,
+		0, 28, 191, 1, 0, 0, 0, 30, 199, 1, 0, 0, 0, 32, 201, 1, 0, 0, 0, 34, 203,
 		1, 0, 0, 0, 36, 222, 1, 0, 0, 0, 38, 226, 1, 0, 0, 0, 40, 231, 1, 0, 0,
 		0, 42, 233, 1, 0, 0, 0, 44, 237, 1, 0, 0, 0, 46, 239, 1, 0, 0, 0, 48, 241,
 		1, 0, 0, 0, 50, 256, 1, 0, 0, 0, 52, 264, 1, 0, 0, 0, 54, 274, 1, 0, 0,
@@ -127,7 +127,7 @@ func grobbitparserParserInit() {
 		108, 109, 1, 0, 0, 0, 109, 111, 1, 0, 0, 0, 110, 108, 1, 0, 0, 0, 111,
 		113, 5, 2, 0, 0, 112, 101, 1, 0, 0, 0, 112, 102, 1, 0, 0, 0, 113, 7, 1,
 		0, 0, 0, 114, 116, 3, 4, 2, 0, 115, 114, 1, 0, 0, 0, 115, 116, 1, 0, 0,
-		0, 116, 117, 1, 0, 0, 0, 117, 118, 5, 52, 0, 0, 118, 9, 1, 0, 0, 0, 119,
+		0, 116, 117, 1, 0, 0, 0, 117, 118, 5, 53, 0, 0, 118, 9, 1, 0, 0, 0, 119,
 		131, 5, 27, 0, 0, 120, 132, 3, 12, 6, 0, 121, 127, 5, 1, 0, 0, 122, 123,
 		3, 12, 6, 0, 123, 124, 5, 7, 0, 0, 124, 126, 1, 0, 0, 0, 125, 122, 1, 0,
 		0, 0, 126, 129, 1, 0, 0, 0, 127, 125, 1, 0, 0, 0, 127, 128, 1, 0, 0, 0,
@@ -156,7 +156,7 @@ func grobbitparserParserInit() {
 		0, 191, 196, 3, 30, 15, 0, 192, 193, 5, 5, 0, 0, 193, 195, 3, 30, 15, 0,
 		194, 192, 1, 0, 0, 0, 195, 198, 1, 0, 0, 0, 196, 194, 1, 0, 0, 0, 196,
 		197, 1, 0, 0, 0, 197, 29, 1, 0, 0, 0, 198, 196, 1, 0, 0, 0, 199, 200, 5,
-		49, 0, 0, 200, 31, 1, 0, 0, 0, 201, 202, 3, 30, 15, 0, 202, 33, 1, 0, 0,
+		50, 0, 0, 200, 31, 1, 0, 0, 0, 201, 202, 3, 30, 15, 0, 202, 33, 1, 0, 0,
 		0, 203, 209, 5, 3, 0, 0, 204, 205, 3, 36, 18, 0, 205, 206, 5, 7, 0, 0,
 		206, 208, 1, 0, 0, 0, 207, 204, 1, 0, 0, 0, 208, 211, 1, 0, 0, 0, 209,
 		207, 1, 0, 0, 0, 209, 210, 1, 0, 0, 0, 210, 212, 1, 0, 0, 0, 211, 209,
@@ -301,15 +301,16 @@ const (
 	GrobbitParserTtKwSwitch      = 46
 	GrobbitParserTtKwType        = 47
 	GrobbitParserTtKwVar         = 48
-	GrobbitParserTtIdentifier    = 49
-	GrobbitParserTtInt           = 50
+	GrobbitParserTtBool          = 49
+	GrobbitParserTtIdentifier    = 50
 	GrobbitParserTtFloat         = 51
-	GrobbitParserTtString        = 52
-	GrobbitParserTtChar          = 53
-	GrobbitParserWS              = 54
-	GrobbitParserBLOCK_COMMENT   = 55
-	GrobbitParserLINE_COMMENT    = 56
-	GrobbitParserTtUnknown       = 57
+	GrobbitParserTtInt           = 52
+	GrobbitParserTtString        = 53
+	GrobbitParserTtChar          = 54
+	GrobbitParserWS              = 55
+	GrobbitParserBLOCK_COMMENT   = 56
+	GrobbitParserLINE_COMMENT    = 57
+	GrobbitParserTtUnknown       = 58
 )
 
 // GrobbitParser rules.
@@ -2204,6 +2205,7 @@ type IBasic_literalContext interface {
 	// Getter signatures
 	TtInt() antlr.TerminalNode
 	TtFloat() antlr.TerminalNode
+	TtBool() antlr.TerminalNode
 
 	// IsBasic_literalContext differentiates from other interfaces.
 	IsBasic_literalContext()
@@ -2249,6 +2251,10 @@ func (s *Basic_literalContext) TtFloat() antlr.TerminalNode {
 	return s.GetToken(GrobbitParserTtFloat, 0)
 }
 
+func (s *Basic_literalContext) TtBool() antlr.TerminalNode {
+	return s.GetToken(GrobbitParserTtBool, 0)
+}
+
 func (s *Basic_literalContext) GetRuleContext() antlr.RuleContext {
 	return s
 }
@@ -2277,7 +2283,7 @@ func (p *GrobbitParser) Basic_literal() (localctx IBasic_literalContext) {
 		p.SetState(166)
 		_la = p.GetTokenStream().LA(1)
 
-		if !(_la == GrobbitParserTtInt || _la == GrobbitParserTtFloat) {
+		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&7318349394477056) != 0) {
 			p.GetErrorHandler().RecoverInline(p)
 		} else {
 			p.GetErrorHandler().ReportMatch(p)
@@ -3326,7 +3332,7 @@ func (p *GrobbitParser) Block() (localctx IBlockContext) {
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	for (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&853367471472648) != 0 {
+	for (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&1416317424893960) != 0 {
 		{
 			p.SetState(204)
 			p.Statement()
@@ -4059,7 +4065,7 @@ func (p *GrobbitParser) Return_stmt() (localctx IReturn_stmtContext) {
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	if (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&3940649674015490) != 0 {
+	if (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&8444249301385986) != 0 {
 		{
 			p.SetState(234)
 			p.expression(0)
@@ -4713,12 +4719,24 @@ type IFor_clauseContext interface {
 	// GetParser returns the parser.
 	GetParser() antlr.Parser
 
+	// GetInit returns the init rule contexts.
+	GetInit() ISimple_stmtContext
+
+	// GetPost returns the post rule contexts.
+	GetPost() ISimple_stmtContext
+
+	// SetInit sets the init rule contexts.
+	SetInit(ISimple_stmtContext)
+
+	// SetPost sets the post rule contexts.
+	SetPost(ISimple_stmtContext)
+
 	// Getter signatures
 	AllTtSemicolon() []antlr.TerminalNode
 	TtSemicolon(i int) antlr.TerminalNode
+	Condition() IConditionContext
 	AllSimple_stmt() []ISimple_stmtContext
 	Simple_stmt(i int) ISimple_stmtContext
-	Condition() IConditionContext
 
 	// IsFor_clauseContext differentiates from other interfaces.
 	IsFor_clauseContext()
@@ -4727,6 +4745,8 @@ type IFor_clauseContext interface {
 type For_clauseContext struct {
 	antlr.BaseParserRuleContext
 	parser antlr.Parser
+	init   ISimple_stmtContext
+	post   ISimple_stmtContext
 }
 
 func NewEmptyFor_clauseContext() *For_clauseContext {
@@ -4756,12 +4776,36 @@ func NewFor_clauseContext(parser antlr.Parser, parent antlr.ParserRuleContext, i
 
 func (s *For_clauseContext) GetParser() antlr.Parser { return s.parser }
 
+func (s *For_clauseContext) GetInit() ISimple_stmtContext { return s.init }
+
+func (s *For_clauseContext) GetPost() ISimple_stmtContext { return s.post }
+
+func (s *For_clauseContext) SetInit(v ISimple_stmtContext) { s.init = v }
+
+func (s *For_clauseContext) SetPost(v ISimple_stmtContext) { s.post = v }
+
 func (s *For_clauseContext) AllTtSemicolon() []antlr.TerminalNode {
 	return s.GetTokens(GrobbitParserTtSemicolon)
 }
 
 func (s *For_clauseContext) TtSemicolon(i int) antlr.TerminalNode {
 	return s.GetToken(GrobbitParserTtSemicolon, i)
+}
+
+func (s *For_clauseContext) Condition() IConditionContext {
+	var t antlr.RuleContext
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(IConditionContext); ok {
+			t = ctx.(antlr.RuleContext)
+			break
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(IConditionContext)
 }
 
 func (s *For_clauseContext) AllSimple_stmt() []ISimple_stmtContext {
@@ -4805,22 +4849,6 @@ func (s *For_clauseContext) Simple_stmt(i int) ISimple_stmtContext {
 	return t.(ISimple_stmtContext)
 }
 
-func (s *For_clauseContext) Condition() IConditionContext {
-	var t antlr.RuleContext
-	for _, ctx := range s.GetChildren() {
-		if _, ok := ctx.(IConditionContext); ok {
-			t = ctx.(antlr.RuleContext)
-			break
-		}
-	}
-
-	if t == nil {
-		return nil
-	}
-
-	return t.(IConditionContext)
-}
-
 func (s *For_clauseContext) GetRuleContext() antlr.RuleContext {
 	return s
 }
@@ -4855,7 +4883,10 @@ func (p *GrobbitParser) For_clause() (localctx IFor_clauseContext) {
 	if _la == GrobbitParserTtIdentifier {
 		{
 			p.SetState(263)
-			p.Simple_stmt()
+
+			var _x = p.Simple_stmt()
+
+			localctx.(*For_clauseContext).init = _x
 		}
 
 	}
@@ -4874,7 +4905,7 @@ func (p *GrobbitParser) For_clause() (localctx IFor_clauseContext) {
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	if (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&3940649674015490) != 0 {
+	if (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&8444249301385986) != 0 {
 		{
 			p.SetState(267)
 			p.Condition()
@@ -4899,7 +4930,10 @@ func (p *GrobbitParser) For_clause() (localctx IFor_clauseContext) {
 	if _la == GrobbitParserTtIdentifier {
 		{
 			p.SetState(271)
-			p.Simple_stmt()
+
+			var _x = p.Simple_stmt()
+
+			localctx.(*For_clauseContext).post = _x
 		}
 
 	}
@@ -5579,8 +5613,8 @@ type IExpressionContext interface {
 	AllExpression() []IExpressionContext
 	Expression(i int) IExpressionContext
 	TtOpMul() antlr.TerminalNode
-	TtOpMod() antlr.TerminalNode
 	TtOpDiv() antlr.TerminalNode
+	TtOpMod() antlr.TerminalNode
 	TtOpAdd() antlr.TerminalNode
 	TtOpSub() antlr.TerminalNode
 	TtOpEq() antlr.TerminalNode
@@ -5694,12 +5728,12 @@ func (s *ExpressionContext) TtOpMul() antlr.TerminalNode {
 	return s.GetToken(GrobbitParserTtOpMul, 0)
 }
 
-func (s *ExpressionContext) TtOpMod() antlr.TerminalNode {
-	return s.GetToken(GrobbitParserTtOpMod, 0)
-}
-
 func (s *ExpressionContext) TtOpDiv() antlr.TerminalNode {
 	return s.GetToken(GrobbitParserTtOpDiv, 0)
+}
+
+func (s *ExpressionContext) TtOpMod() antlr.TerminalNode {
+	return s.GetToken(GrobbitParserTtOpMod, 0)
 }
 
 func (s *ExpressionContext) TtOpAdd() antlr.TerminalNode {
@@ -6116,7 +6150,7 @@ func (p *GrobbitParser) Unary_expr() (localctx IUnary_exprContext) {
 	}
 
 	switch p.GetTokenStream().LA(1) {
-	case GrobbitParserTtLParen, GrobbitParserTtIdentifier, GrobbitParserTtInt, GrobbitParserTtFloat:
+	case GrobbitParserTtLParen, GrobbitParserTtBool, GrobbitParserTtIdentifier, GrobbitParserTtFloat, GrobbitParserTtInt:
 		p.EnterOuterAlt(localctx, 1)
 		{
 			p.SetState(317)
@@ -6594,7 +6628,7 @@ func (p *GrobbitParser) Call_expr() (localctx ICall_exprContext) {
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	if (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&3940649674015490) != 0 {
+	if (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&8444249301385986) != 0 {
 		{
 			p.SetState(343)
 			p.Expressions()

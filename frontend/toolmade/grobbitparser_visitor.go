@@ -194,7 +194,7 @@ func (v *GrobbitParserVisitor) VisitBasic_literals(ctx *generated.Basic_literals
 
 // VisitBasic_literal implements:
 //
-//		basic_literal:  	TtInt | TtFloat  // NOTE: BOOL
+//		basic_literal:  	TtInt | TtFloat | TtBool
 //	 	              	;
 func (v *GrobbitParserVisitor) VisitBasic_literal(ctx *generated.Basic_literalContext) interface{} {
 	token := mapToken(ctx.GetStart())
@@ -390,8 +390,9 @@ func (v *GrobbitParserVisitor) VisitBreak_stmt(ctx *generated.Break_stmtContext)
 
 // VisitIf_stmt implements:
 //
-//	if_stmt:    TtKwIf (simple_stmt TtSemicolon)? condition block (TtKwElse (if_stmt | block))?
-//				;
+// if_stmt:	TtKwIf (simple_stmt TtSemicolon)? condition block (TtKwElse (if_stmt | block))?
+//
+//	;
 func (v *GrobbitParserVisitor) VisitIf_stmt(ctx *generated.If_stmtContext) interface{} {
 	var (
 		init_stmt common.StmtNode = nil
@@ -422,7 +423,8 @@ type ForClause struct {
 
 // VisitFor_stmt implements:
 //
-//	for_stmt:       TtKwFor (condition | for_clause)? block
+//	for_stmt:    TtKwFor (condition | for_clause)? block
+//				;
 func (v *GrobbitParserVisitor) VisitFor_stmt(ctx *generated.For_stmtContext) interface{} {
 	var clause = ForClause{nil, nil, nil}
 	token := mapToken(ctx.GetStart())
@@ -441,14 +443,15 @@ func (v *GrobbitParserVisitor) VisitFor_stmt(ctx *generated.For_stmtContext) int
 //	for_clause:     simple_stmt? TtSemicolon condition? TtSemicolon simple_stmt?
 func (v *GrobbitParserVisitor) VisitFor_clause(ctx *generated.For_clauseContext) interface{} {
 	var clause = ForClause{nil, nil, nil}
-	if ctx.Simple_stmt(0) != nil {
-		clause.init_stmt = VisitExpectingType[common.StmtNode](v, ctx.Simple_stmt(0))
+
+	if initCtx := ctx.GetInit(); initCtx != nil {
+		clause.init_stmt = VisitExpectingType[common.StmtNode](v, initCtx)
 	}
 	if ctx.Condition() != nil {
 		clause.cond = VisitExpectingType[common.ExprNode](v, ctx.Condition())
 	}
-	if ctx.Simple_stmt(1) != nil {
-		clause.post_stmt = VisitExpectingType[common.StmtNode](v, ctx.Simple_stmt(1))
+	if postCtx := ctx.GetPost(); postCtx != nil {
+		clause.post_stmt = VisitExpectingType[common.StmtNode](v, postCtx)
 	}
 	return clause
 }
@@ -521,14 +524,14 @@ func (v *GrobbitParserVisitor) VisitExpressions(ctx *generated.ExpressionsContex
 
 // VisitExpression implements:
 //
-// expression:    unary_expr
+// expression: 	  unary_expr
 //
-//	             | expression op=(TtOpMul | TtOpMod | TtOpDiv) expression
-//	             | expression op=(TtOpAdd | TtOpSub) expression
-//	             | expression op=(TtOpEq | TtOpNe | TtOpLt | TtOpLe | TtOpGt | TtOpGe) expression
-//	             | expression op=TtOpAnd expression
-//	             | expression op=TtOpOr expression
-//							  ;
+//	| expression op=(TtOpMul | TtOpDiv | TtOpMod) expression
+//	| expression op=(TtOpAdd | TtOpSub) expression
+//	| expression op=(TtOpEq | TtOpNe | TtOpLt | TtOpLe | TtOpGt | TtOpGe) expression
+//	| expression op=TtOpAnd expression
+//	| expression op=TtOpOr expression
+//	;
 func (v *GrobbitParserVisitor) VisitExpression(ctx *generated.ExpressionContext) interface{} {
 	if ctx.Unary_expr() != nil {
 		return VisitExpectingType[common.ExprNode](v, ctx.Unary_expr())
@@ -587,7 +590,8 @@ func (v *GrobbitParserVisitor) VisitPrimary_expr(ctx *generated.Primary_exprCont
 //	;
 func (v *GrobbitParserVisitor) VisitCall_expr(ctx *generated.Call_exprContext) interface{} {
 	var expr common.ExprNode
-	token := mapToken(ctx.TtLParen().GetSymbol())
+	//token := mapToken(ctx.TtLParen().GetSymbol())
+	token := mapToken(ctx.Identifier().GetStart())
 	expr = VisitExpectingType[*common.IdentifierNode](v, ctx.Identifier())
 	if ctx.Pkg_name() != nil {
 		token := mapToken(ctx.TtPeriod().GetSymbol())

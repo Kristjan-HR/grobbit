@@ -62,6 +62,7 @@ var tokenTypes = map[int]TokenType{
 	generated.GrobbitLexerTtKwSwitch:      TtKwSwitch,
 	generated.GrobbitLexerTtKwType:        TtKwType,
 	generated.GrobbitLexerTtKwVar:         TtKwVar,
+	generated.GrobbitLexerTtBool:          TtBool,
 }
 
 type Lexer struct {

@@ -51,12 +51,29 @@ TtKwSwitch:     'switch';
 TtKwType:       'type';
 TtKwVar:        'var';
 
+TtBool:         'false' | 'true';
+
 TtIdentifier:   [a-zA-Z_][a-zA-Z_0-9]*; // NOTE: unicode?
 
+TtFloat
+    : DEC_DIGITS '.' DEC_DIGITS? EXPONENT?
+    | DEC_DIGITS EXPONENT
+    | '.' DEC_DIGITS EXPONENT?
+    ;
+
 TtInt:          [1-9][0-9]* | [0];
-TtFloat:        [0-9]* '.' [0-9]+ | [0-9]+ '.' [0-9]*;  // NOTE
+
 TtString:       '"' (EscapeInStr | ~[\r\n])* '"';
 TtChar:         '\'' (EscapeInChar | ~[\r\n]) '\'';
+
+// Fragment rules to build the float syntax (No separators)
+fragment DEC_DIGITS
+    : [0-9]+
+    ;
+
+fragment EXPONENT
+    : [eE] [+-]? DEC_DIGITS
+    ;
 
 fragment EscapeInStr: '\\' ( '"' | '\\' | 'n' | 't');
 fragment EscapeInChar: '\\' ( '\'' | '\\' |  'n' | 't');
