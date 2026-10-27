@@ -66,13 +66,14 @@ func ComparisonOp(v *IRVisitor, node *BinaryExprNode) llvm.Operand {
 	// dummy := v.ir.activeBlock.Append(llvm.NewICmpInstr(llvm.Eq, llvm.NewLiteral(llvm.I32, "0"), llvm.NewLiteral(llvm.I32, "0")))
 	// return dummy
 
-	block := v.ir.activeBlock.Get()
+	
 	v.visit(node.Lhs)
 	lhsOp := v.ir.exprOperand
 	v.visit(node.Rhs)
 	rhsOp := v.ir.exprOperand
+	block := v.ir.activeBlock.Get()
 	var operand *llvm.Register
-	if node.GetType().String() == "float64" {
+	if node.Lhs.GetType().String() == "float64" {
 		operand = block.Append(llvm.NewFCmpInstr(mapFCmpOp[node.Tok.Type], lhsOp, rhsOp))
 	} else {
 		operand = block.Append(llvm.NewICmpInstr(mapICmpOp[node.Tok.Type], lhsOp, rhsOp))
@@ -91,8 +92,9 @@ func LogicalNotOp(v *IRVisitor, node *UnaryExprNode) llvm.Operand {
 	// dummy := v.ir.activeBlock.Append(llvm.NewICmpInstr(llvm.Eq, llvm.NewLiteral(llvm.I32, "0"), llvm.NewLiteral(llvm.I32, "0")))
 	// return dummy
 
-	block := v.ir.activeBlock.Get()
+	
 	v.visit(node.Expr)
+	block := v.ir.activeBlock.Get()
 	ret := block.Append(llvm.NewSelectInstr(v.ir.exprOperand, llvm.NewLiteral(llvm.I1, "0"), llvm.NewLiteral(llvm.I1, "1")))
 	return ret
 }
@@ -127,12 +129,12 @@ func LogicalOrOp(v *IRVisitor, node *BinaryExprNode) llvm.Operand {
 	blockRhs = v.ir.activeBlock.Get()
 	rhsOp := v.ir.exprOperand
 	blockRhs.Close(llvm.NewBranchInstr(labelEnd))
-
+	labelRhsFinal := blockRhs.GetLabel()
 	blockEnd := v.ir.function.Append(llvm.NewBlock(labelEnd, "end"))
 	ret := blockEnd.Append(llvm.NewPhiInstr(
 		lhsOp.GetType(),
 		llvm.ValueLabel{Op: lhsOp, Label: labelLhs},
-		llvm.ValueLabel{Op: rhsOp, Label: labelRhs},
+		llvm.ValueLabel{Op: rhsOp, Label: labelRhsFinal},
 	))
 	v.ir.activeBlock.Set(blockEnd)
 	return ret
@@ -171,12 +173,12 @@ func LogicalAndOp(v *IRVisitor, node *BinaryExprNode) llvm.Operand {
 	blockRhs = v.ir.activeBlock.Get()
 	rhsOp := v.ir.exprOperand
 	blockRhs.Close(llvm.NewBranchInstr(labelEnd))
-
+	labelRhsFinal := blockRhs.GetLabel()
 	blockEnd := v.ir.function.Append(llvm.NewBlock(labelEnd, "end"))
 	ret := blockEnd.Append(llvm.NewPhiInstr(
 		lhsOp.GetType(),
 		llvm.ValueLabel{Op: llvm.NewLiteral(llvm.I1, "0"), Label: labelLhs},
-		llvm.ValueLabel{Op: rhsOp, Label: labelRhs},
+		llvm.ValueLabel{Op: rhsOp, Label: labelRhsFinal},
 	))
 	v.ir.activeBlock.Set(blockEnd)
 	return ret

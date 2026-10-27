@@ -118,7 +118,7 @@ var FCmpOperatorNames = [...]string{
 	FCmpEq: "oeq",
 	FCmpNe: "une",
 	FCmpGt: "ogt",
-	FCmpGe: "sge",
+	FCmpGe: "oge",
 	FCmpLt: "olt",
 	FCmpLe: "ole",
 }
