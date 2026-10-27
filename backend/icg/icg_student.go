@@ -3,6 +3,7 @@ package icg
 import (
 	"Grobbit/backend/icg/llvm"
 	. "Grobbit/common"
+	. "Grobbit/backend/semana"
 )
 
 var mapIArthOp = []llvm.IArithmeticOperator{
@@ -234,4 +235,51 @@ func ForStmt(v *IRVisitor, node *ForStmtNode) {
 	//  br label %for_post
 	// end:
 	//  ...
+	labelCond, labelPost, labelBody, labelEnd := llvm.NewLabel(), llvm.NewLabel(), llvm.NewLabel(), llvm.NewLabel()
+	// for_init:
+	if node.Init != nil {
+		v.visit(node.Init)
+	} // now we jump to condition block
+	blockInit := v.ir.activeBlock.Get()
+	blockInit.Close(llvm.NewBranchInstr(labelCond))
+	//we create condition block
+	blockCond := v.ir.function.Append(llvm.NewBlock(labelCond, "for_cond"))
+	v.ir.activeBlock.Set(blockCond)
+	//evaluate condition if it exists
+	if node.Cond != nil {
+		v.flags |= InExpr
+		v.visit(node.Cond)
+		v.flags &^= InExpr
+		condOp := v.ir.exprOperand
+		blockCond = v.ir.activeBlock.Get()
+		blockCond.Close(llvm.NewBranchCondInstr(condOp, labelBody, labelEnd))
+	} else {
+		blockCond.Close(llvm.NewBranchInstr(labelBody))
+	}
+	// create the body 
+	blockBody := v.ir.function.Append(llvm.NewBlock(labelBody, "for_body"))
+	v.ir.activeBlock.Set(blockBody)
+	v.ir.labelsBranch = append(v.ir.labelsBranch, LabelPair{
+		//with break --> jump to end, with continue --> jump to post
+    labelContinue: labelPost,
+    labelBreak:    labelEnd,})
+	//exec instructions of body
+	v.visit(node.Body)
+	//each break affects only its loop
+	v.ir.labelsBranch = v.ir.labelsBranch[:len(v.ir.labelsBranch)-1]
+	//avoid closing active block again if it's laready closed
+	v.ir.activeBlock.Close(llvm.NewBranchInstr(labelPost))
+	//create post block
+	blockPost := v.ir.function.Append(llvm.NewBlock(labelPost, "for_post"))
+	v.ir.activeBlock.Set(blockPost)
+	if node.Post != nil {
+		v.visit(node.Post)
+	}
+	blockPost = v.ir.activeBlock.Get()
+	//check the condition again
+	blockPost.Close(llvm.NewBranchInstr(labelCond))
+	//block that makes the program continue when it reaches the end or when it sees continue statement
+	blockEnd := v.ir.function.Append(
+    llvm.NewBlock(labelEnd, "for_end"),)
+	v.ir.activeBlock.Set(blockEnd)
 }
