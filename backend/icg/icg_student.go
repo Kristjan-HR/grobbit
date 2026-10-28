@@ -2,8 +2,8 @@ package icg
 
 import (
 	"Grobbit/backend/icg/llvm"
-	. "Grobbit/common"
 	. "Grobbit/backend/semana"
+	. "Grobbit/common"
 )
 
 var mapIArthOp = []llvm.IArithmeticOperator{
@@ -62,12 +62,6 @@ ComparisonOp implements a code for the comparison operators (==, !=, <= <, > >=)
 Returns a llvm value (llvm.Operand) with the result.
 */
 func ComparisonOp(v *IRVisitor, node *BinaryExprNode) llvm.Operand {
-	// TO DO: add your do here (replacing dummy placeholder below).
-
-	// dummy := v.ir.activeBlock.Append(llvm.NewICmpInstr(llvm.Eq, llvm.NewLiteral(llvm.I32, "0"), llvm.NewLiteral(llvm.I32, "0")))
-	// return dummy
-
-	
 	v.visit(node.Lhs)
 	lhsOp := v.ir.exprOperand
 	v.visit(node.Rhs)
@@ -87,13 +81,6 @@ LogicalNotOp implements a code for the logical not operator.
 Returns a llvm value (llvm.Operand) with the result.
 */
 func LogicalNotOp(v *IRVisitor, node *UnaryExprNode) llvm.Operand {
-	// TO DO: add your do here (replacing dummy placeholder below).
-	// TODO: use select instruction
-
-	// dummy := v.ir.activeBlock.Append(llvm.NewICmpInstr(llvm.Eq, llvm.NewLiteral(llvm.I32, "0"), llvm.NewLiteral(llvm.I32, "0")))
-	// return dummy
-
-	
 	v.visit(node.Expr)
 	block := v.ir.activeBlock.Get()
 	ret := block.Append(llvm.NewSelectInstr(v.ir.exprOperand, llvm.NewLiteral(llvm.I1, "0"), llvm.NewLiteral(llvm.I1, "1")))
@@ -105,17 +92,6 @@ LogicalOrOp implements a short-circuit code for the logical or operator.
 Returns a llvm value (llvm.Operand) with the result.
 */
 func LogicalOrOp(v *IRVisitor, node *BinaryExprNode) llvm.Operand {
-	// TO DO: add your do here (replacing dummy placeholder below).
-	// TODO:
-	// block_lhs:
-	//  %lhs = eval lhs
-	// 	br i1 %lhs, %block_end, %block_rhs
-	// block_rhs:
-	//  %rhs = eval rhs
-	//  br %block_end
-	// block_end
-	//  %res = phi i1 [%lhs, %block_lhs], [%rhs, %block_rhs]
-
 	labelEnd, labelRhs := llvm.NewLabel(), llvm.NewLabel()
 	v.visit(node.Lhs)
 
@@ -146,20 +122,6 @@ LogicalAndOp implements a short-circuit code for the logical and operator.
 Returns a llvm value (llvm.Operand) with the result.
 */
 func LogicalAndOp(v *IRVisitor, node *BinaryExprNode) llvm.Operand {
-	// TO DO: add your do here (replacing dummy placeholder below).
-	// TODO:
-	// block_lhs:
-	//  %lhs = eval lhs
-	//  br i1 %lhs, %block_rhs, %block_end
-	// block_rhs:
-	//  %rhs = eval rhs
-	//  br %block_end
-	// block_end:
-	//  %res = phi i1 [false, %block_lhs], [%rhs, %block_rhs]
-
-	// dummy := v.ir.activeBlock.Append(llvm.NewICmpInstr(llvm.Eq, llvm.NewLiteral(llvm.I32, "0"), llvm.NewLiteral(llvm.I32, "0")))
-	// return dummy
-
 	labelEnd, labelRhs := llvm.NewLabel(), llvm.NewLabel()
 
 	v.visit(node.Lhs)
@@ -212,40 +174,17 @@ func LogicalAndOp(v *IRVisitor, node *BinaryExprNode) llvm.Operand {
 					nil (block is open, does not have terminal instruction yet)
 */
 func ForStmt(v *IRVisitor, node *ForStmtNode) {
-	// TO DO: add your do here (replacing dummy placeholder below).
-
-	// TODO: most difficult
-	// for [cond] {}
-	// for [init] ; [cond] ; [post] {}
-	// blocks exist, even if empty
-	// for loops have scope for their init, and the block has a scope
-
-	// TODO:
-	// for_init:
-	//  ...
-	//  br label %for_cond
-	// for_cond:
-	//  ...
-	//  br i1 cond, %for_body, %end
-	// for_post:
-	//  ...
-	//  br label %for_cond
-	// for_body
-	//  ...
-	//  br label %for_post
-	// end:
-	//  ...
 	labelCond, labelPost, labelBody, labelEnd := llvm.NewLabel(), llvm.NewLabel(), llvm.NewLabel(), llvm.NewLabel()
-	// for_init:
+
 	if node.Init != nil {
 		v.visit(node.Init)
-	} // now we jump to condition block
+	}
 	blockInit := v.ir.activeBlock.Get()
 	blockInit.Close(llvm.NewBranchInstr(labelCond))
-	//we create condition block
+
 	blockCond := v.ir.function.Append(llvm.NewBlock(labelCond, "for_cond"))
 	v.ir.activeBlock.Set(blockCond)
-	//evaluate condition if it exists
+
 	if node.Cond != nil {
 		v.flags |= InExpr
 		v.visit(node.Cond)
@@ -256,30 +195,30 @@ func ForStmt(v *IRVisitor, node *ForStmtNode) {
 	} else {
 		blockCond.Close(llvm.NewBranchInstr(labelBody))
 	}
-	// create the body 
+
 	blockBody := v.ir.function.Append(llvm.NewBlock(labelBody, "for_body"))
 	v.ir.activeBlock.Set(blockBody)
 	v.ir.labelsBranch = append(v.ir.labelsBranch, LabelPair{
-		//with break --> jump to end, with continue --> jump to post
-    labelContinue: labelPost,
-    labelBreak:    labelEnd,})
-	//exec instructions of body
+		labelContinue: labelPost,
+		labelBreak:    labelEnd,
+	})
+
 	v.visit(node.Body)
-	//each break affects only its loop
+
 	v.ir.labelsBranch = v.ir.labelsBranch[:len(v.ir.labelsBranch)-1]
-	//avoid closing active block again if it's laready closed
+
 	v.ir.activeBlock.Close(llvm.NewBranchInstr(labelPost))
-	//create post block
+
 	blockPost := v.ir.function.Append(llvm.NewBlock(labelPost, "for_post"))
 	v.ir.activeBlock.Set(blockPost)
 	if node.Post != nil {
 		v.visit(node.Post)
 	}
 	blockPost = v.ir.activeBlock.Get()
-	//check the condition again
+
 	blockPost.Close(llvm.NewBranchInstr(labelCond))
-	//block that makes the program continue when it reaches the end or when it sees continue statement
+
 	blockEnd := v.ir.function.Append(
-    llvm.NewBlock(labelEnd, "for_end"),)
+		llvm.NewBlock(labelEnd, "for_end"))
 	v.ir.activeBlock.Set(blockEnd)
 }
